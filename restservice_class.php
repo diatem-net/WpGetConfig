@@ -1,6 +1,8 @@
 <?php
 
-
+/**
+ * Permet de déployer facilement un service REST
+ */
 class RestService{
 
     public $_allow = array();
@@ -15,6 +17,9 @@ class RestService{
     private $requestSecure;
     private $requestService;
 
+    /**
+     * Constructeur
+     */
     public function __construct() {
 	if(isset($_REQUEST['request'])){
 	    $this->_method = strtolower(trim(str_replace("/", "", $_REQUEST['request'])));
@@ -22,15 +27,31 @@ class RestService{
 	$this->inputs();
     }
     
+    
+    /**
+     * Définit qu'il s'agit d'un service REST sécurisé, précise des couples clé publique / clé privée
+     * @param array $keys   Tableau associatif. array('clepublique' => 'cleprivee')
+     */
     public function setSecured($keys){
 	$this->securedRest = true;
 	$this->securedKeys = $keys;
     }
 
+    
+    /**
+     * Get Referere
+     * @return string
+     */
     public function get_referer() {
 	return $_SERVER['HTTP_REFERER'];
     }
 
+    
+    /**
+     * Envoie une réponse dans le navigateur
+     * @param string $data  Réponse à envoyer. (Typiquement au format JSON)
+     * @param integer $status	Statut HTTP de la requete. (200 pour succès)
+     */
     public function response($data, $status) {
 	$this->_code = ($status) ? $status : 200;
 	$this->set_headers();
@@ -38,6 +59,11 @@ class RestService{
 	exit;
     }
 
+    
+    /**
+     * Retourne le message 'verbose' associé au code réponse renvoyé
+     * @return string
+     */
     private function get_status_message() {
 	$status = array(
 	    100 => 'Continue',
@@ -84,11 +110,19 @@ class RestService{
 	return ($status[$this->_code]) ? $status[$this->_code] : $status[500];
     }
 
+    
+    /**
+     * Retourne le type de methode employé pour l'appel. (POST, GET, PUT ou DELETE)
+     * @return string
+     */
     public function get_request_method() {
 	return $_SERVER['REQUEST_METHOD'];
     }
     
     
+    /**
+     * Met en place le service
+     */
     public function processApi() {
 	if($this->securedRest){
 	    if(!isset($this->requestSecure) || !isset($this->requestPublicKey)){
@@ -108,6 +142,13 @@ class RestService{
 	
     }
     
+    
+    /**
+     * Vérifie la concordance entre la clé publique et la chaine de verification transmise. (Grace à la clé privée)
+     * @param string $publicKey	Clé publique
+     * @param string $secureString    Chaine de vérification
+     * @return boolean
+     */
     private function verifyKeys($publicKey, $secureString){
 	if(!isset($this->securedKeys[$publicKey])){
 	    return false;
@@ -118,6 +159,11 @@ class RestService{
     }
     
     
+    /**
+     * Retourne la chaîne à encoder pour vérification de la chaîne de vérification sécurité.
+     * @param string $publicKey	Clé publique
+     * @return string
+     */
     private function getToEncodeString($publicKey){
 	$toEncode = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REDIRECT_URL'];
 	$toEncode .= $this->get_request_method();
@@ -128,6 +174,12 @@ class RestService{
     }
     
     
+    /**
+     * Compare deux valeurs HMAC
+     * @param string $a	HMAC#1
+     * @param string $b	HMAC#2
+     * @return boolean
+     */
     private function compareHMAC($a, $b){
 	if (!is_string($a) || !is_string($b)) {
             return false;
@@ -145,6 +197,10 @@ class RestService{
         return $status === 0; 
     }
 
+    
+    /**
+     * Transforme correctement les données POST/GET transmises
+     */
     private function inputs() {
 	if  (isset($_GET['publickey']) && isset($_GET['secure'])) {
 	    $this->requestPublicKey = $_GET['publickey'];
@@ -175,6 +231,12 @@ class RestService{
 	}
     }
 
+    
+    /**
+     * Nettoie une entrée
+     * @param array $data   Données en entrée
+     * @return array	Données en sortie
+     */
     private function cleanInputs($data) {
 	$clean_input = array();
 	if (is_array($data)) {
@@ -191,6 +253,10 @@ class RestService{
 	return $clean_input;
     }
 
+    
+    /**
+     * Définit les headers à envoyer au navigateur
+     */
     private function set_headers() {
 	header("HTTP/1.1 " . $this->_code . " " . $this->get_status_message());
 	header("Content-Type:" . $this->_content_type);

@@ -56,6 +56,7 @@ class WpConfig{
 
 	foreach($all_plugins as $key => $plugin){
 	    $line = array();
+	    $line['type'] = 'plugin';
 	    $line['name'] = $plugin['Name'];
 	    $line['version'] = $plugin['Version'];
 	    $line['editeur'] = $plugin['Author'];
