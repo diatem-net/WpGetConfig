@@ -46,6 +46,11 @@ class WpConfig{
 	$output['name'] = 'wordpress';
 	$output['version'] = get_bloginfo('version');
 	
+	if(!$output['version']){
+	    require(ABSPATH. '/wp-includes/version.php');
+	    $output['version'] = $wp_version;
+	}
+
 	return $output;
     }
     
