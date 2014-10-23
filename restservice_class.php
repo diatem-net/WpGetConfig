@@ -165,7 +165,7 @@ class RestService{
      * @return string
      */
     private function getToEncodeString($publicKey){
-	$toEncode = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REDIRECT_URL'];
+	$toEncode = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF'];
 	$toEncode .= $this->get_request_method();
 	$toEncode .= $publicKey;
 	$toEncode .= json_encode($this->_request);
